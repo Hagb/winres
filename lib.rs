@@ -45,7 +45,7 @@
 //! [`WindowsResorce::compile()`]: struct.WindowsResource.html#method.compile
 //! [`WindowsResource::new()`]: struct.WindowsResource.html#method.new
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::io;
@@ -56,7 +56,7 @@ use std::process;
 extern crate toml;
 
 /// Version info field names
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum VersionInfo {
     /// The version value consists of four 16 bit words, e.g.,
     /// `MAJOR << 48 | MINOR << 32 | PATCH << 16 | RELEASE`
@@ -86,8 +86,8 @@ struct Icon {
 #[derive(Debug)]
 pub struct WindowsResource {
     toolkit_path: PathBuf,
-    properties: HashMap<String, String>,
-    version_info: HashMap<VersionInfo, u64>,
+    properties: BTreeMap<String, String>,
+    version_info: BTreeMap<VersionInfo, u64>,
     rc_file: Option<String>,
     icons: Vec<Icon>,
     language: u16,
@@ -146,8 +146,8 @@ impl WindowsResource {
     /// | `FILEFLAGS`          | `0x0`                        |
     ///
     pub fn new() -> Self {
-        let mut props: HashMap<String, String> = HashMap::new();
-        let mut ver: HashMap<VersionInfo, u64> = HashMap::new();
+        let mut props: BTreeMap<String, String> = BTreeMap::new();
+        let mut ver: BTreeMap<VersionInfo, u64> = BTreeMap::new();
 
         props.insert(
             "FileVersion".to_string(),
@@ -766,7 +766,7 @@ fn get_sdk() -> io::Result<Vec<PathBuf>> {
     Ok(kits)
 }
 
-fn parse_cargo_toml(props: &mut HashMap<String, String>) -> io::Result<()> {
+fn parse_cargo_toml(props: &mut BTreeMap<String, String>) -> io::Result<()> {
     let cargo = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("Cargo.toml");
     let mut f = fs::File::open(cargo)?;
     let mut cargo_toml = String::new();
